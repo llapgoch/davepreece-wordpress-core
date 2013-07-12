@@ -23,12 +23,17 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+add_action('wp', 'davepreece_core_setup');
 
-
-spl_autoload_register(function($class){
-	if(substr($class, 0, 3) == "DP_"){
-		if(file_exists(dirname(__FILE__) . '/DP/' . $class . ".php")){
-			include('DP/' . $class . ".php");
+function davepreece_core_setup(){
+	// Autoloader
+	spl_autoload_register(function($class){
+		if(substr($class, 0, 3) == "DP_"){
+			if(file_exists(dirname(__FILE__) . '/DP/' . $class . ".php")){
+				include(dirname(__FILE__) . '/DP/' . $class . ".php");
+			}
 		}
-	}
-});
+	});
+	
+	wp_enqueue_script('dp-core', plugins_url('js/script.js', __FILE__));
+}

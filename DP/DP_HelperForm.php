@@ -1,8 +1,10 @@
 <?php
 class DP_HelperForm{
 	public static $forms = array();
-	public static $fieldError = '<span class="error">[ERROR]</span>';
-	public $errors;
+	public $fieldError = '<span class="error error-[FIELDFOR]">[ERROR]</span>';
+	public $fieldErrorClass = 'error';
+	public $outputErrors = true;
+	public $errors = array();
 	public $name;
 	public $data;
 	
@@ -51,11 +53,11 @@ class DP_HelperForm{
 	}
 	
 	public function getRawValue($name){
-		if(!isset($data[$name])){
+		if(!isset($this->data[$name])){
 			return '';
 		}
 		
-		return $data[$name];
+		return $this->data[$name];
 	}
 	
 	public function getValue($name){
@@ -70,10 +72,21 @@ class DP_HelperForm{
 		
 		return $default;
 	}
+
 	
-	public static function buildAttrs($attrs){
+	public function buildAttrs($attrs, $name = null){
 		if(!$attrs |! is_array($attrs)){
 			return '';
+		}
+		
+		if($name){
+			if($this->hasError($name)){
+				if(!isset($attrs['class'])){
+					$attrs['class'] = $this->fieldErrorClass;
+				}else{
+					$attrs['class'] .= " " . $this->fieldErrorClass;
+				}
+			}
 		}
 		
 		$attrstring = '';
@@ -85,12 +98,33 @@ class DP_HelperForm{
 		return $attrstring;
 	}
 	
+	public function hasError($name){
+		if(!isset($this->errors[$name])){
+			return false;
+		}
+		
+		return $this->errors[$name];
+	}
+	
+	public function getFieldError($name){
+		if(!$this->hasError($name)){
+			return '';
+		}
+		
+		$fieldError = str_replace('[ERROR]', $this->errors[$name]['general'], $this->fieldError);
+		$fieldError = str_replace('[FIELDFOR]', $name, $fieldError);
+
+		return $fieldError;
+	}
+	
+	
 	public function dropdown($name, $options, $attr = array()){
 			$attr['name'] = $name;
 			$attr['class'] = trim((isset($attr['class']) ? $attr['class'] : ''));
+	
 			$selected = $this->getValue($name);
 
-			$html = "<select " . self::buildAttrs($attr) . ">";
+			$html = "<select " . $this->buildAttrs($attr, $name) . ">";
 
 			// for option groups : $key = label, $val = array of options
 			// for options		 : $key = value, $val = label
@@ -110,7 +144,11 @@ class DP_HelperForm{
 			}
 
 			$html .= '</select>';
-
+			
+			if($this->outputErrors){
+				$html .= $this->getFieldError($name);
+			}
+			
 			return $html;
 		}
 		
@@ -118,33 +156,36 @@ class DP_HelperForm{
 			$attr['name'] = $name;
 
 			$attr['value'] = $this->getValue($name);
-			$html = '<input type="' . $type . '" ' . self::buildAttrs($attr) . " />";
+			$html = '<input type="' . $type . '" ' . $this->buildAttrs($attr, $name) . " />";
+			
+			if($this->outputErrors){
+				$html .= $this->getFieldError($name);
+			}
 			
 			return $html;
 		}
 	
-	public static function validateData($data, $rules){
+	public function validate($rules){
 		$scrubbed = array();
-		$errors = array();
 		
 		foreach($rules as $key => $ruleTypes){
 			foreach($ruleTypes as $rule){
 				switch($rule){
 					case 'R' : 
 					// Required
-					if(!isset($data[$key]) || !$data[$key]){
-						$errors[$key]['main'] = 'Please enter "' . $key . "'";
-						$errors[$key]['general'] = 'This is required';
+					if(!isset($this->data[$key]) || !$this->data[$key]){
+						$this->errors[$key]['main'] = 'Please enter "' . $key . "'";
+						$this->errors[$key]['general'] = 'This is required';
 					}
 					
 					break;
 					case 'N' :
 					// Numeric, not necasarily required
-					if(isset($data[$key]) && $data[$key]){
-						if(!is_numeric($data[$key])){
+					if(isset($this->data[$key]) && $this->data[$key]){
+						if(!is_numeric($this->data[$key])){
 							// Translate the database fields into names here
-							$errors[$key]['main'] = "Please make sure '" . $key . "'is a number";
-							$errors[$key]['general'] = "This needs to be a number";
+							$this->errors[$key]['main'] = "Please make sure '" . $key . "'is a number";
+							$this->errors[$key]['general'] = "This needs to be a number";
 						}
 					}
 					
@@ -156,11 +197,11 @@ class DP_HelperForm{
 				}
 			}
 		}
-		
-		if(!$errors){
-			return true;
+	
+		if($this->errors){
+			return false;
 		}
 		
-		return $errors;
+		return true;
 	}
 }
