@@ -100,6 +100,7 @@ class DP_HelperForm{
 		
 		return $attrstring;
 	}
+
 	
 	public function hasError($name){
 		if(!isset($this->errors[$name])){
@@ -212,8 +213,10 @@ class DP_HelperForm{
 					case 'R' : 
 					// Required
 					if(!isset($this->data[$key]) || trim($this->data[$key]) == ''){
-						$this->errors[$key]['main'] = 'Please enter "' . $key . "'";
-						$this->errors[$key]['general'] = 'This is required';
+						$this->setError($key, array(
+							'main' => 'Please enter "' . $key . "'",
+							'general' => 'This is required'
+						));
 					}
 					
 					break;
@@ -222,8 +225,10 @@ class DP_HelperForm{
 					if(isset($this->data[$key]) && $this->data[$key]){
 						if(!is_numeric($this->data[$key])){
 							// Translate the database fields into names here
-							$this->errors[$key]['main'] = "Please make sure '" . $key . "'is a number";
-							$this->errors[$key]['general'] = "This needs to be a number";
+							$this->setError($key, array(
+								'main' =>  "Please make sure '" . $key . "'is a number",
+								'general' => "This needs to be a number"
+							));
 						}
 					}
 					break;
@@ -232,17 +237,20 @@ class DP_HelperForm{
 					// Change the regex for different date formats
 					if(isset($this->data[$key]) && $this->data[$key]){
 						if(preg_match($this->datePattern, $this->data[$key]) != true){
-							$this->errors[$key]['main'] = $key . " needs to be a valid date";
-							$this->errors[$key]['general'] = "This needs to be a valid date";
+							$this->setError($key, array(
+								'main' =>  $key . " needs to be a valid date",
+								'general' => "This needs to be a valid date"
+							));
 						}
 					}
 					break;
 					
 					case "EMAIL" :
 					if (filter_var($this->data[$key], FILTER_VALIDATE_EMAIL) == false) {
-						$this->errors[$key]['main'] = $key . " needs to be a valid email address";
-						$this->errors[$key]['general'] = "This needs to be a valid email address";
-					    
+						$this->setError($key, array(
+							'main' =>  $key . " needs to be a valid email address",
+							'general' => "This needs to be a valid email address"
+						));
 					}
 					
 					break;
@@ -257,40 +265,70 @@ class DP_HelperForm{
 				// String Length LESS
 				if(preg_match('/LENGTH-LESS\[(\d+)\]/', $rule, $matches)){
 					if((strlen($this->data[$key]) >= (int) $matches[1])){
-						$this->errors[$key]['main'] = $key . ' must be fewer than '  . $matches[1] . ' characters';
-						$this->errors[$key]['general'] = 'This must fewer than ' . $matches[1] . " characters"; 
+						$this->setError($key, array(
+							'main' =>  $key . ' must be fewer than '  . $matches[1] . ' characters',
+							'general' => 'This must fewer than ' . $matches[1] . " characters"
+						));
 					}
 				}
 				
 				// String length GREATER
 				if(preg_match('/LENGTH-GREATER\[(\d+)\]/', $rule, $matches)){
 					if((strlen($this->data[$key]) <= (int) $matches[1])){
-						$this->errors[$key]['main'] = $key . ' must be greater than ' . $matches[1] . ' characters';
-						$this->errors[$key]['general'] = 'This must be more than ' . $matches[1] . ' characters'; 
+						$this->setError($key, array(
+							'main' =>  $key . ' must be greater than ' . $matches[1] . ' characters',
+							'general' => 'This must be more than ' . $matches[1] . ' characters'
+						));
 					}
 				}
 				
 				// String length equal
 				if(preg_match('/LENGTH-EQUAL\[(\d+)\]/', $rule, $matches)){
 					if((strlen($this->data[$key]) != (int) $matches[1])){
-						$this->errors[$key]['main'] = $key . ' must be ' . $matches[1] . ' characters';
-						$this->errors[$key]['general'] = 'This must ' . $matches[1] . ' characters'; 
+						$this->setError($key, array(
+							'main' =>  $key . ' must be ' . $matches[1] . ' characters',
+							'general' => 'This must ' . $matches[1] . ' characters'
+						));
 					}
 				}
 				
 				// Value must be GREATER
-				if(preg_match('/VALUE-GREATER\[([\d\.]+)\]/', $rule, $matches)){
+				if(preg_match('/VALUE-GREATER\[([\d\.-]+)\]/', $rule, $matches)){
 					if((float)$this->data[$key] <= (float) $matches[1]){
-						$this->errors[$key]['main'] = $key . ' must be greater than ' . $matches[1];
-						$this->errors[$key]['general'] = 'This must be greater than ' . $matches[1]; 
+						$this->setError($key, array(
+							'main' => $key . ' must be greater than ' . $matches[1],
+							'general' => 'This must be greater than ' . $matches[1]
+						));
 					}
 				}
 				
 				// Value must be GREATER
-				if(preg_match('/VALUE-LESS\[([\d\.]+)\]/', $rule, $matches)){
+				if(preg_match('/VALUE-LESS\[([\d\.-]+)\]/', $rule, $matches)){
 					if((float)$this->data[$key] >= (float) $matches[1]){
-						$this->errors[$key]['main'] = $key . ' must be less than ' . $matches[1];
-						$this->errors[$key]['general'] = 'This must be less than ' . $matches[1]; 
+						$this->setError($key, array(
+							'main' => $key . ' must be less than ' . $matches[1],
+							'general' => 'This must be less than ' . $matches[1]
+						));
+					}
+				}
+				
+				// Value must be GREATER
+				if(preg_match('/VALUE-GREATER-EQ\[([\d\.-]+)\]/', $rule, $matches)){
+					if((float)$this->data[$key] < (float) $matches[1]){
+						$this->setError($key, array(
+							'main' => $key . ' must be greater or equal to ' . $matches[1],
+							'general' => 'This must be greater or equal to ' . $matches[1]
+						));
+					}
+				}
+				
+				// Value must be GREATER
+				if(preg_match('/VALUE-LESS-EQ\[([\d\.-]+)\]/', $rule, $matches)){
+					if((float)$this->data[$key] > (float) $matches[1]){
+						$this->setError($key, array(
+							'main' => $key . ' must be less or equal to ' . $matches[1],
+							'general' => 'This must be less or equal to ' . $matches[1]
+						));
 					}
 				}
 			}
