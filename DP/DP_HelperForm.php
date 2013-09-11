@@ -63,9 +63,22 @@ class DP_HelperForm{
 		return $this->data[$name];
 	}
 	
+	public function getValues(){
+		return $this->data;
+	}
+	
+	public function hasValue($name){
+		return isset($this->data[$name]);
+	}
+	
 	public function getValue($name){
 		$val = isset($this->data[$name]) ? $this->data[$name] : '';
-		return esc_attr(stripslashes($val));
+
+		if(is_string($val)){
+			return esc_attr(stripslashes($val));
+		}
+		
+		return $val;
 	}
 	
 	public static function getPost($post, $default = null){
@@ -75,7 +88,20 @@ class DP_HelperForm{
 		
 		return $default;
 	}
+	
+	public static function makeAttrs($attrs){
+		$attrstring = '';
+		
+		if(!is_array($attrs)){
+			return '';
+		}
 
+		foreach($attrs as $key => $attr){
+			$attrstring = $attrstring . ($attrstring ? ' ' : '') . $key . "='" . esc_attr($attr) . "'";
+		}
+		
+		return $attrstring;
+	}
 	
 	public function buildAttrs($attrs, $name = null){
 		if(!$attrs |! is_array($attrs)){
@@ -92,13 +118,7 @@ class DP_HelperForm{
 			}
 		}
 		
-		$attrstring = '';
-
-		foreach($attrs as $key => $attr){
-			$attrstring = $attrstring . ($attrstring ? ' ' : '') . $key . "='" . esc_attr($attr) . "'";
-		}
-		
-		return $attrstring;
+		return self::makeAttrs($attrs);
 	}
 
 	
@@ -156,10 +176,37 @@ class DP_HelperForm{
 			return $html;
 		}
 		
+		public static function createInput($name, $type, $attrs, $selected){
+			$value = isset($attrs['value']) ? $attrs['value'] : '';
+			$isChecked = false;
+
+			if(($type == 'radio' || $type == 'checkbox') && $value){	
+					
+				if(is_array($selected)){
+				
+					if(in_array($value, $selected)){
+						$isChecked = true;
+					}
+				}else{
+					if($value == $selected){
+						$isChecked = true;
+					}
+				}
+				
+			}
+			
+			$checkedStr = $isChecked ? "checked='checked'" : '';
+			
+			return "<input type='$type' name='$name' " . self::makeAttrs($attrs) . " " . $checkedStr . " />";
+		}
+		
 		public function input($name, $type = 'text', $attr = array()){
 			$attr['name'] = $name;
 
-			$attr['value'] = $this->getValue($name);
+			if(!isset($attr['value'])){
+				$attr['value'] = $this->getValue($name);
+			}
+			
 			$html = '<input type="' . $type . '" ' . $this->buildAttrs($attr, $name) . " />";
 			
 			if($this->outputErrors){
@@ -167,6 +214,16 @@ class DP_HelperForm{
 			}
 			
 			return $html;
+		}
+		
+		public function checkbox($name, $value, $attr = array()){
+			if(isset($this->data[$name])){
+				$attr['checked'] = 'checked';
+			}
+			
+			$attr['value'] = $value;
+			
+			return $this->input($name, 'checkbox', $attr);
 		}
 		
 		// keys;
@@ -197,8 +254,14 @@ class DP_HelperForm{
 				if(in_array($key, $omit)){
 					continue;
 				}
-					
-				$inputs .= $this->input($key, 'hidden');
+				
+				if(is_array($this->getRawValue($key))){
+					foreach($this->getRawValue($key) as $val){
+						$inputs .= "<input type='hidden' name='" . $key . "[]' value='$val' />";
+					}
+				}else{
+					$inputs .= $this->input($key, 'hidden');
+				}
 			}
 			
 			return $inputs;
