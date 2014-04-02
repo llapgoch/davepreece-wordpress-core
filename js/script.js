@@ -6,7 +6,7 @@
 		$('input, textarea, select').on('focus', function(){
 			// Find an error for this field
 			var name = $(this).attr('name');
-
+			name = name.replace('[]', '');
 			$('.error-' + name).animate({
 				'opacity':0
 			},{

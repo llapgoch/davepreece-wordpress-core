@@ -36,5 +36,5 @@ spl_autoload_register(function($class){
 });
 
 function davepreece_core_setup(){	
-	wp_enqueue_script('dp-core', plugins_url('js/script.js', __FILE__));
+	wp_enqueue_script('dp-core', plugins_url('js/script.js', __FILE__), array('jquery'));
 }
