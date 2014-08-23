@@ -5,9 +5,14 @@
 		// Turn off any errors on form fields when focussed
 		$('input, textarea, select').on('focus', function(){
 			// Find an error for this field
-			var name = $(this).attr('name');
-			name = name.replace('[]', '');
-			$('.error-' + name).animate({
+			var n = $(this).attr('name');
+            
+            if(!n){
+                return;
+            }
+            
+			n = n.replace('[]', '');
+			$('.error-' + n).animate({
 				'opacity':0
 			},{
 				'complete':function(){
