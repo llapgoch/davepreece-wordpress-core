@@ -202,10 +202,14 @@ class DP_HelperForm{
 		
 		public function input($name, $type = 'text', $attr = array()){
 			$attr['name'] = $name;
-
-			if(!isset($attr['value'])){
+            
+			if(!isset($attr['value']) && $this->hasValue($name)){
 				$attr['value'] = $this->getValue($name);
 			}
+            
+            if(!isset($attr['value']) && isset($attr['default'])){
+                $attr['value'] = $attr['default'];
+            }
 			
 			$html = '<input type="' . $type . '" ' . $this->buildAttrs($attr, $name) . " />";
 			
