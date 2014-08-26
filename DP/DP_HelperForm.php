@@ -176,7 +176,7 @@ class DP_HelperForm{
 			return $html;
 		}
 		
-		public static function createInput($name, $type, $attrs, $selected){
+		public static function createInput($name, $type, $attrs, $selected = null){
 			$value = isset($attrs['value']) ? $attrs['value'] : '';
 			$isChecked = false;
 
