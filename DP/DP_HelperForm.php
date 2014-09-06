@@ -145,8 +145,18 @@ class DP_HelperForm{
 	public function dropdown($name, $options, $attr = array()){
 			$attr['name'] = $name;
 			$attr['class'] = trim((isset($attr['class']) ? $attr['class'] : ''));
-	
-			$selected = $this->getValue($name);
+	        
+            $selected = null;
+            
+			if(!isset($attr['value']) && $this->hasValue($name)){
+				$selected = $this->getValue($name);
+			}
+            
+            if($selected == null && isset($attr['default'])){
+                $selected = $attr['default'];
+            }
+
+            unset($attr['default']);
 
 			$html = "<select " . $this->buildAttrs($attr, $name) . ">";
 
@@ -168,7 +178,7 @@ class DP_HelperForm{
 			}
 
 			$html .= '</select>';
-			
+            
 			if($this->outputErrors){
 				$html .= $this->getFieldError($name);
 			}
@@ -210,6 +220,8 @@ class DP_HelperForm{
             if(!isset($attr['value']) && isset($attr['default'])){
                 $attr['value'] = $attr['default'];
             }
+            
+            unset($attr['default']);
 			
 			$html = '<input type="' . $type . '" ' . $this->buildAttrs($attr, $name) . " />";
 			
@@ -280,6 +292,7 @@ class DP_HelperForm{
 					case 'R' : 
 					// Required
 					if(!isset($this->data[$key]) || trim($this->data[$key]) == ''){
+                        $this->getFieldError($name);
 						$this->setError($key, array(
 							'main' => 'Please enter "' . $key . "'",
 							'general' => 'This is required'
