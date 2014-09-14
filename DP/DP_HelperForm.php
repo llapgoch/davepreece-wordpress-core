@@ -1,7 +1,7 @@
 <?php
 class DP_HelperForm{
 	public static $forms = array();
-	public $fieldError = '<span class="error error-[FIELDFOR]">[ERROR]</span>';
+	public $fieldError = '<span class="error error-[FIELDFOR] field-[TYPE]">[ERROR]</span>';
 	public $fieldErrorClass = 'error';
 	public $outputErrors = true;
 	public $errors = array();
@@ -130,13 +130,14 @@ class DP_HelperForm{
 		return $this->errors[$name];
 	}
 	
-	public function getFieldError($name){
+	public function getFieldError($name, $type = ''){
 		if(!$this->hasError($name)){
 			return '';
 		}
 		
 		$fieldError = str_replace('[ERROR]', $this->errors[$name]['general'], $this->fieldError);
 		$fieldError = str_replace('[FIELDFOR]', $name, $fieldError);
+        $fieldError = str_replace('[TYPE]', $type, $fieldError);
 
 		return $fieldError;
 	}
@@ -226,14 +227,14 @@ class DP_HelperForm{
 			$html = '<input type="' . $type . '" ' . $this->buildAttrs($attr, $name) . " />";
 			
 			if($this->outputErrors){
-				$html .= $this->getFieldError($name);
+				$html .= $this->getFieldError($name, $type);
 			}
 			
 			return $html;
 		}
 		
 		public function checkbox($name, $value, $attr = array()){
-			if(isset($this->data[$name])){
+            if(isset($this->data[$name])){
 				$attr['checked'] = 'checked';
 			}
 			
