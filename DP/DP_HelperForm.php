@@ -80,6 +80,10 @@ class DP_HelperForm{
 		
 		return $val;
 	}
+    
+    public function setValue($key, $value){
+        $this->data[$key] = $value;
+    }
 	
 	public static function getPost($post, $default = null){
 		if(isset($_POST[$post])){
@@ -194,7 +198,6 @@ class DP_HelperForm{
 			if(($type == 'radio' || $type == 'checkbox') && $value){	
 					
 				if(is_array($selected)){
-				
 					if(in_array($value, $selected)){
 						$isChecked = true;
 					}
@@ -207,7 +210,6 @@ class DP_HelperForm{
 			}
 			
 			$checkedStr = $isChecked ? "checked='checked'" : '';
-			
 			return "<input type='$type' name='$name' " . self::makeAttrs($attrs) . " " . $checkedStr . " />";
 		}
 		
