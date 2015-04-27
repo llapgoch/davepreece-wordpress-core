@@ -59,8 +59,12 @@ class DP_HelperForm{
 		if(!isset($this->data[$name])){
 			return '';
 		}
+        
+        if(is_array($this->data[$name])){
+            return $this->data[$name];
+        }
 		
-		return $this->data[$name];
+		return stripslashes($this->data[$name]);
 	}
 	
 	public function getValues(){
@@ -219,11 +223,11 @@ class DP_HelperForm{
 			if(!isset($attr['value']) && $this->hasValue($name)){
 				$attr['value'] = $this->getValue($name);
 			}
-            
+
             if(!isset($attr['value']) && isset($attr['default'])){
                 $attr['value'] = $attr['default'];
             }
-            
+
             unset($attr['default']);
 			
 			$html = '<input type="' . $type . '" ' . $this->buildAttrs($attr, $name) . " />";
@@ -234,6 +238,31 @@ class DP_HelperForm{
 			
 			return $html;
 		}
+        
+        public function textarea($name, $attr = array()) {
+			$attr['name'] = $name;
+            
+			if(!isset($attr['value']) && $this->hasValue($name)){
+				$attr['value'] = $this->getValue($name);
+			}
+
+            if(!isset($attr['value']) && isset($attr['default'])){
+                $attr['value'] = $attr['default'];
+            }
+            
+            $value = $attr['value'];
+            
+            unset($attr['value']);
+            unset($attr['default']);
+            
+			$html = '<textarea ' . $this->buildAttrs($attr, $name) . ">" . $value . '</textarea>';
+			
+			if($this->outputErrors){
+				$html .= $this->getFieldError($name, $type);
+			}
+			
+			return $html;
+        }
 		
 		public function checkbox($name, $value, $attr = array()){
             if(isset($this->data[$name])){
